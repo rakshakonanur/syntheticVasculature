@@ -1,0 +1,5 @@
+# Ignore Py-cache files
+__pycache__/
+
+# Ignore the 1D output files
+1D_output/
