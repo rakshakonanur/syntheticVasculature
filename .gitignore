@@ -2,4 +2,4 @@
 __pycache__/
 
 # Ignore the 1D output files
-1D_output/
+1D Output/
