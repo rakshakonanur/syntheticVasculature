@@ -26,14 +26,14 @@ class CFD:
         self.parameters['buffer']       = kwargs.get('buffer',5)
         self.parameters['inlet_normal'] = kwargs.get('inlet_normal',np.array([-1,0,0]))#.reshape(-1,1))
         self.parameters['outlet_normal'] = kwargs.get('outlet_normal',np.array([1,0,0]))
-        self.parameters['inlet'] = kwargs.get('inlet',np.array([3,3.05,3.4])) #old - [2.6,3.05,3.4]
-        self.parameters['outlet'] = kwargs.get('outlet',np.array([-3,-3.05,3.4]))
+        self.parameters['inlet'] = kwargs.get('inlet',np.array([.3,.305,.34])) #old - [2.6,3.05,3.4]
+        self.parameters['outlet'] = kwargs.get('outlet',np.array([-.3,-.305,.34]))
         self.parameters['num_branches'] = kwargs.get('num_branches',10)
         self.parameters['path_to_0d_solver'] = kwargs.get('path_to_0d_solver','C:\\Program Files\\SimVascular\\SimVascular\\2023-03-27\\Python3.5\\Lib\\site-packages\\')
         self.parameters['path_to_1d_solver'] = kwargs.get('path_to_1d_solver','C:\\Program Files\\SimVascular\\svOneDSolver\\2022-10-04\\svOneDSolver.exe')
         self.parameters['outdir'] = kwargs.get('outdir','H:\\My Drive\\Shadden Lab Research\\Synthetic Vessel Generation\\Synthetic Vessel Generation\\Spring 2025\\')
         self.parameters['folder'] = kwargs.get('folder','tmp')
-        self.parameters['geom'] = kwargs.get('geom','H:\My Drive\Shadden Lab Research\Synthetic Vessel Generation\Synthetic Vessel Generation\Spring 2025\Bioreactor Geometry\cermRaksha_0213.stl')
+        self.parameters['geom'] = kwargs.get('geom','H:\My Drive\Shadden Lab Research\Synthetic Vessel Generation\Synthetic Vessel Generation\Spring 2025\Bioreactor Geometry\cermRaksha_scaled.stl')
 
     def set_assumptions(self,**kwargs):
         self.homogeneous = kwargs.get('homogeneous',True)
@@ -125,7 +125,7 @@ class CFD:
         fileName = self.parameters['outdir'] + '\\' + self.parameters['folder'] + '\\' + 'plot_0d_results_to_3d.py'
         subprocess.run(['python', fileName])
 
-    def export_tree_1d_files(self,number_cardiac_cycles=1,num_points=1000): # export 1d files required for simulation
+    def export_tree_1d_files(self,number_cardiac_cycles = 5,num_points=1000): # export 1d files required for simulation
         outdir = self.parameters['outdir']
         folder = self.parameters['folder']
         cerm_tree = self.cerm_tree
@@ -138,7 +138,7 @@ class CFD:
             format='%(asctime)s - %(levelname)s - %(message)s'
         )
         logging.basicConfig(level=logging.DEBUG)
-        _,_,self.data = cerm_tree.export_1d_simulation(outdir=outdir, folder=folder,number_cariac_cycles=number_cardiac_cycles,num_points=num_points)
+        _,_,self.data = cerm_tree.export_1d_simulation(steady = True, outdir=outdir, folder=folder,number_cariac_cycles=number_cardiac_cycles,num_points=num_points)
         self.save_data()
 
 

@@ -3,3 +3,6 @@ __pycache__/
 
 # Ignore the 1D output files
 1D Output/
+
+# Ignore the 0D output files
+0D Output/
