@@ -56,6 +56,7 @@ class CFD:
         direction = self.parameters['inlet_normal']
         num_branches = self.parameters['num_branches']
         cerm_tree = svcco.tree()
+        cerm_tree.set_parameters(Qterm = 0.05)
         cerm_tree.set_boundary(cermSurf)
         cerm_tree.convex = self.convex
         cerm_tree.set_root(start=root, direction=direction)
