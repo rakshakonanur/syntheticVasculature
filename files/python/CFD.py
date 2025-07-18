@@ -24,16 +24,16 @@ class CFD:
         self.parameters['q']   = kwargs.get('q',4)
         self.parameters['resolution']       = kwargs.get('resolution',50)
         self.parameters['buffer']       = kwargs.get('buffer',5)
-        self.parameters['inlet_normal'] = kwargs.get('inlet_normal',np.array([-1,0,0]))#.reshape(-1,1))
+        self.parameters['inlet_normal'] = kwargs.get('inlet_normal',np.array([0,-1,0]))#.reshape(-1,1))
         self.parameters['outlet_normal'] = kwargs.get('outlet_normal',np.array([1,0,0]))
-        self.parameters['inlet'] = kwargs.get('inlet',np.array([.3,.305,.34])) #old - [2.6,3.05,3.4]
+        self.parameters['inlet'] = kwargs.get('inlet',np.array([0,0.41,0.34])) #old - [2.6,3.05,3.4], [.3,.305,.34]
         self.parameters['outlet'] = kwargs.get('outlet',np.array([-.3,-.305,.34]))
         self.parameters['num_branches'] = kwargs.get('num_branches',10)
-        self.parameters['path_to_0d_solver'] = kwargs.get('path_to_0d_solver','C:\\Program Files\\SimVascular\\SimVascular\\2023-03-27\\Python3.5\\Lib\\site-packages\\')
-        self.parameters['path_to_1d_solver'] = kwargs.get('path_to_1d_solver','C:\\Program Files\\SimVascular\\svOneDSolver\\2022-10-04\\svOneDSolver.exe')
-        self.parameters['outdir'] = kwargs.get('outdir','H:\\My Drive\\Shadden Lab Research\\Synthetic Vessel Generation\\Synthetic Vessel Generation\\Spring 2025\\')
+        self.parameters['path_to_0d_solver'] = kwargs.get('path_to_0d_solver',r'/usr/local/sv/svZeroDSolver/2025-07-02/bin')
+        self.parameters['path_to_1d_solver'] = kwargs.get('path_to_1d_solver',r'/usr/local/sv/oneDSolver/2025-06-26/bin/OneDSolver')
+        self.parameters['outdir'] = kwargs.get('outdir',"/Users/rakshakonanur/Documents/Research/Synthetic_Vasculature/output")
         self.parameters['folder'] = kwargs.get('folder','tmp')
-        self.parameters['geom'] = kwargs.get('geom','H:\My Drive\Shadden Lab Research\Synthetic Vessel Generation\Synthetic Vessel Generation\Spring 2025\Bioreactor Geometry\cermRaksha_scaled.stl')
+        self.parameters['geom'] = kwargs.get('geom',"/Users/rakshakonanur/Documents/Research/Synthetic_Vasculature/syntheticVasculature/files/geometry/cermRaksha_scaled_clipped_big.stl")
 
     def set_assumptions(self,**kwargs):
         self.homogeneous = kwargs.get('homogeneous',True)
@@ -66,7 +66,7 @@ class CFD:
     def forest_build(self, number_of_networks,trees_per_network): # build vascular forest
         cermSurf = self.cermSurf
         num_branches = self.parameters['num_branches']
-        folder = self.parameters['outdir'] + '\\' + self.parameters['folder'] + '\\'
+        folder = self.parameters['outdir'] + os.sep + self.parameters['folder'] + os.sep
         cerm_forest = svcco.forest(boundary = cermSurf, number_of_networks = number_of_networks, trees_per_network = trees_per_network, start_points = [[self.parameters['inlet'], self.parameters['outlet']]], 
                                    directions=  [[self.parameters['inlet_normal'], self.parameters['outlet_normal']]], 
                                    root_lengths_low=[[1,1]],root_lengths_high=[[5,5]])
@@ -89,7 +89,7 @@ class CFD:
         path_to_0d_solver = self.parameters['path_to_0d_solver']
         outdir = self.parameters['outdir']
         folder = self.parameters['folder']
-        cerm_tree.export_0d_simulation(get_0d_solver=True, path_to_0d_solver=path_to_0d_solver,outdir=outdir,folder=folder,number_cardiac_cycles=num_cardiac_cycles,number_time_pts_per_cycle=num_time_pts_per_cycle,distal_pressure=distal_pressure)
+        cerm_tree.export_0d_simulation(get_0d_solver=False, path_to_0d_solver=path_to_0d_solver,outdir=outdir,folder=folder,number_cardiac_cycles=num_cardiac_cycles,number_time_pts_per_cycle=num_time_pts_per_cycle,distal_pressure=distal_pressure)
 
     def export_forest_0d_files(self, num_networks, num_cardiac_cycles = 1, num_time_pts_per_cycle = 5, distal_pressure = 0.0): # export 0d files required for simulation
         cerm_forest = self.cerm_forest
@@ -102,28 +102,36 @@ class CFD:
         self.save_data()
 
     def run_tree_0d_simulation(self): # run 0d simulation
-        fileName = self.parameters['outdir'] + '\\' + self.parameters['folder'] + '\\' + 'run.py'
+        import pysvzerod
+        fileName = self.parameters['outdir'] + os.sep + self.parameters['folder'] + os.sep + 'run.py'
         replace = "sys.path.append('None')"
-        new_path = r"sys.path.append('C:\\Program Files\\SimVascular\\SimVascular\\2023-03-27\\Python3.5\\Lib\\site-packages\\svZeroDSolver\\')"
-        # Read the file and store the modified content
-        with open(fileName, "r") as file:
-            lines = file.readlines()  # Read all lines
+        path_to_0d_solver = r"sys.path.append('/usr/local/sv/svZeroDSolver/2025-07-02/bin/svzerodsolver')"
+        # # Read the file and store the modified content
+        # with open(fileName, "r") as file:
+        #     lines = file.readlines()  # Read all lines
 
-        # Modify the target line
-        with open(fileName, "w") as file:
-            for line in lines:
-                if line.strip() == replace:  # Match the line (strip to ignore spaces)
-                    file.write(new_path + "\n")  # Write the new line
-                else:
-                    file.write(line)  # Keep the other lines unchanged
-        print('0D solver path changed successully.')
+        # # Modify the target line
+        # with open(fileName, "w") as file:
+        #     for line in lines:
+        #         if line.strip() == replace:  # Match the line (strip to ignore spaces)
+        #             file.write(new_path + "\n")  # Write the new line
+        #         else:
+        #             file.write(line)  # Keep the other lines unchanged
+        # print('0D solver path changed successfully.')
 
-        # Run the 0D simulation
-        subprocess.run(['python', fileName])
+        # # Run the 0D simulation
+        # subprocess.run(['python', fileName])
+
+        # Use subprocess.run and set stdout and stderr to None to inherit the output to the console
+        subprocess.run([path_to_0d_solver, fileName], 
+                    cwd= self.parameters['outdir'] ,
+                    stdout=None,  # Display stdout in the terminal
+                    stderr=None,  # Display stderr in the terminal
+                    shell=False)  # shell=False is usually safer 
 
     def plot_0d_results_to_3d(self): # export 0d results to 3d
-        os.chdir(self.parameters['outdir'] + '\\' + self.parameters['folder'])
-        fileName = self.parameters['outdir'] + '\\' + self.parameters['folder'] + '\\' + 'plot_0d_results_to_3d.py'
+        os.chdir(self.parameters['outdir'] + os.sep + self.parameters['folder'])
+        fileName = self.parameters['outdir'] + os.sep + self.parameters['folder'] + os.sep + 'plot_0d_results_to_3d.py'
         subprocess.run(['python', fileName])
 
     def export_tree_1d_files(self,number_cardiac_cycles = 5,num_points=1000): # export 1d files required for simulation
@@ -145,8 +153,8 @@ class CFD:
 
     def run_tree_1d_simulation(self): # run 1d simulation
         import shutil
-        os.chdir(self.parameters['outdir'] + '\\' + self.parameters['folder'])
-        fileName = self.parameters['outdir'] + '\\' + self.parameters['folder'] + '\\' + '1d_simulation_input.json'
+        os.chdir(self.parameters['outdir'] + os.sep + self.parameters['folder'])
+        fileName = self.parameters['outdir'] + os.sep + self.parameters['folder'] + os.sep + '1d_simulation_input.json'
 
         backup_path = fileName.replace(".json", "_backup.json")  # Create a backup file path
 
@@ -201,38 +209,41 @@ class CFD:
 
         folder = ''
         if is_forest == 1:
-            folder = 'Forest Output\\'
+            folder = 'Forest_Output/'
 
         if rom == 1:
-            folder += '1D Output'
+            folder += '1D_Output'
         elif rom == 0:
-            folder += '0D Output'
+            folder += '0D_Output'
 
         # Current path
-        dir = os.getcwd()
-        directory_path = dir + '\\' + folder + '\\' + str(date) 
+        dir = self.parameters['outdir']
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+            print(f"Directory '{dir}' created successfully.")
+        directory_path = dir + '/' + folder + '/' + str(date)
 
         count = 0
         if os.path.exists(directory_path):
             for entry in os.scandir(directory_path):
                 if entry.is_dir():
                     count += 1
-        
-        path_create = directory_path + '\\' + 'Run' + str(count+1) + '_' + str(num_branches) + 'branches'
+
+        path_create = directory_path + '/' + 'Run' + str(count+1) + '_' + str(num_branches) + 'branches'
         if rom == 0:
-            path_create += '\\' + '0D Input Files'
+            path_create += '/' + '0D_Input_Files'
         elif rom == 1:
-            path_create += '\\' + '1D Input Files'
+            path_create += '/' + '1D_Input_Files'
 
         os.makedirs(path_create)
         print(f"Directory '{path_create}' created successfully.")
-        
-        self.parameters['outdir'] = directory_path + '\\' + 'Run' + str(count+1) + '_' + str(num_branches) + 'branches'
+
+        self.parameters['outdir'] = directory_path + '/' + 'Run' + str(count+1) + '_' + str(num_branches) + 'branches'
         if rom == 0:
-            self.parameters['folder'] = '0D Input Files'
+            self.parameters['folder'] = '0D_Input_Files'
         elif rom == 1:
-            self.parameters['folder'] = '1D Input Files'
-        
+            self.parameters['folder'] = '1D_Input_Files'
+
     def save_data(self):
         """" From Zach's code...
         data : ndarray
@@ -266,8 +277,8 @@ class CFD:
                     index: 30    -> self identifying index
         """
         
-        
-        fileName = self.parameters['outdir'] + '\\' + self.parameters['folder'] + '\\' + 'branchingData.csv'
+
+        fileName = self.parameters['outdir'] + '/' + self.parameters['folder'] + '/' + 'branchingData.csv'
         columnNames = ["proximalCoordsX","proximalCoordsY","proximalCoordsZ","distalCoordsX","distalCoordsY","distalCoordsZ",
                        "U1","U2","U3","V1","V2","V3","W1","W2","W3","Child1","Child2","Parent","ProximalNodeIndex","DistalNodeIndex",
                        "Length","Radius","Flow","LeftBifurcation","RightBifurcation","ReducedResistance","Depth",
